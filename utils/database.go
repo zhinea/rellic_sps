@@ -3,7 +3,9 @@ package database
 import (
 	"context"
 	"database/sql"
+	"github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
+	"log"
 	"time"
 )
 
@@ -23,11 +25,42 @@ func GetConnection() *sql.DB {
 	return db
 }
 
-func GetCacheConnection() {
-	client := redis
+func GetRedis() *redis.Client {
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0, // use default DB
+	})
+
+	if err := client.Ping(context.Background()).Err(); err != nil {
+		panic(err)
+	}
+
+	return client
 }
 
-func ExecWithCache(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func ExecWithCache(ctx context.Context, query string, args ...interface{}) (interface{}, error) {
+	client := GetRedis()
+
+	cacheArgs := args
+
+	if args == nil {
+		cacheArgs = []interface{}{""}
+	}
+
+	cacheKey := "query:" + query + ":args:" + cacheArgs[0].(string)
+
+	log.Println(cacheKey)
+
+	log.Println("query", query)
+
+	//check cache
+	cacheRes, cacheErr := client.Get(ctx, cacheKey).Result()
+	if cacheErr == nil && cacheRes != "" {
+		log.Println("HIT Cache")
+		return cacheRes, nil
+	}
+
 	db := GetConnection()
 	defer func(db *sql.DB) {
 		err := db.Close()
@@ -36,10 +69,15 @@ func ExecWithCache(ctx context.Context, query string, args ...interface{}) (sql.
 		}
 	}(db)
 
+	log.Println("MISS Cache")
+
 	res, err := db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
+
+	//cache before send
+	client.Set(ctx, cacheKey, res, -1)
 
 	return res, nil
 }
