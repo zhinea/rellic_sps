@@ -7,13 +7,29 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/zhinea/sps/database"
 	"github.com/zhinea/sps/handler"
+	"github.com/zhinea/sps/model/entity"
 	"github.com/zhinea/sps/routes"
+	"github.com/zhinea/sps/utils"
+	"gopkg.in/yaml.v2"
 	"log"
 )
 
 func main() {
+
+	f, err := utils.EnvReader()
+
+	defer f.Close()
+
+	var cfg entity.Config
+
+	decoder := yaml.NewDecoder(f)
+	err = decoder.Decode(&cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	// initial database
-	database.InitDatabase()
+	database.InitDatabase(&cfg)
 
 	app := fiber.New(fiber.Config{
 		JSONEncoder:  json.Marshal,
@@ -41,7 +57,7 @@ func main() {
 	defer sqlDB.Close()
 	defer database.Redis.Close()
 
-	err = app.Listen(":3000")
+	err = app.Listen(":" + cfg.Server.Port)
 	if err != nil {
 		return
 	}

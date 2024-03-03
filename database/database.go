@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
+	"github.com/zhinea/sps/model/entity"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
@@ -12,11 +13,10 @@ var DB *gorm.DB
 var Redis *redis.Client
 var Ctx = context.Background()
 
-func InitDatabase() {
+func InitDatabase(cfg *entity.Config) {
 	var err error
-	DSN := "root:admin@tcp(localhost:3306)/rellic_iofi?charset=utf8mb4&parseTime=True&loc=Local"
 
-	DB, err = gorm.Open(mysql.Open(DSN), &gorm.Config{})
+	DB, err = gorm.Open(mysql.Open(cfg.Database.Mysql.DSN), &gorm.Config{})
 
 	if err != nil {
 		panic("failed to connect database")
@@ -24,9 +24,9 @@ func InitDatabase() {
 	log.Println("Connection Opened to Database")
 
 	Redis = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
+		Addr:     cfg.Database.Redis.Addr,
+		Password: cfg.Database.Redis.Password,
+		DB:       cfg.Database.Redis.DB,
 	})
 
 	//defer Redis.Close()
