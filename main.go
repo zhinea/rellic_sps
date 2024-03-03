@@ -1,13 +1,33 @@
 package main
 
 import (
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/zhinea/sps/database"
+	"github.com/zhinea/sps/handler"
 	"github.com/zhinea/sps/routes"
 )
 
 func main() {
-	app := fiber.New()
+	// initial database
+	database.InitDatabase()
 
+	app := fiber.New(fiber.Config{
+		JSONEncoder: json.Marshal,
+		JSONDecoder: json.Unmarshal,
+		Prefork:     true,
+	})
+
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
+	}))
+
+	// initial middleware
+	app.Use(adaptor.HTTPMiddleware(handler.AppMiddleware))
+
+	// initial routes
 	routes.RouteInit(app)
 
 	err := app.Listen(":3000")

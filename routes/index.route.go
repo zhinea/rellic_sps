@@ -1,12 +1,12 @@
 package routes
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/zhinea/sps/controllers/gtagcontroller"
+)
 
 func RouteInit(app *fiber.App) {
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "What are you doing here?",
-		})
-	})
+	app.Get("/", gtagcontroller.GetScripts)
+	app.All("/:any", gtagcontroller.HandleTrackData)
 }
