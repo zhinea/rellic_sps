@@ -2,10 +2,10 @@ package gtagcontroller
 
 import (
 	"encoding/base64"
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/zhinea/sps/database"
 	"github.com/zhinea/sps/handler"
+	"github.com/zhinea/sps/utils"
 	"io"
 	"log"
 	"net/http"
@@ -40,6 +40,8 @@ func GetScripts(c *fiber.Ctx) error {
 
 	// Menggunakan Go routines untuk menyimpan data request log ke database
 	go func() {
+		defer utils.Recover()
+
 		request := RequestLog{
 			ContainerID: config.ContainerID,
 			IPAddr:      ipAddr,
@@ -130,11 +132,7 @@ func HandleTrackData(c *fiber.Ctx) error {
 
 	// Menggunakan Go routines untuk melakukan pengiriman request ke Google Analytics
 	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Println("Recovered from panic:", r)
-			}
-		}()
+		defer utils.Recover()
 
 		resp, err := client.Do(req)
 		if err != nil {
@@ -146,6 +144,8 @@ func HandleTrackData(c *fiber.Ctx) error {
 
 	// Menggunakan Go routines untuk menyimpan data request log ke database
 	go func() {
+		defer utils.Recover()
+
 		request := RequestLog{
 			ContainerID: config.ContainerID,
 			IPAddr:      ipAddress,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/goccy/go-json"
 	"github.com/zhinea/sps/database"
+	"github.com/zhinea/sps/utils"
 	"log"
 	"net/http"
 	"time"
@@ -70,11 +71,7 @@ func AppMiddleware(handler http.Handler) http.Handler {
 
 			// Store data in cache
 			go func() {
-				defer func() {
-					if r := recover(); r != nil {
-						fmt.Println("Recovered from panic:", r)
-					}
-				}()
+				defer utils.Recover()
 
 				domainJSON, err := json.Marshal(domain)
 				if err != nil {

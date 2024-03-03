@@ -8,6 +8,7 @@ import (
 	"github.com/zhinea/sps/database"
 	"github.com/zhinea/sps/handler"
 	"github.com/zhinea/sps/routes"
+	"log"
 )
 
 func main() {
@@ -15,9 +16,10 @@ func main() {
 	database.InitDatabase()
 
 	app := fiber.New(fiber.Config{
-		JSONEncoder: json.Marshal,
-		JSONDecoder: json.Unmarshal,
-		Prefork:     true,
+		JSONEncoder:  json.Marshal,
+		JSONDecoder:  json.Unmarshal,
+		Prefork:      true,
+		ServerHeader: "SPS Server by Rellic",
 	})
 
 	app.Use(compress.New(compress.Config{
@@ -30,7 +32,16 @@ func main() {
 	// initial routes
 	routes.RouteInit(app)
 
-	err := app.Listen(":3000")
+	//defer database.DB.Close()
+	sqlDB, err := database.DB.DB()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	defer sqlDB.Close()
+	defer database.Redis.Close()
+
+	err = app.Listen(":3000")
 	if err != nil {
 		return
 	}
