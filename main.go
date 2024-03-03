@@ -19,7 +19,7 @@ func main() {
 		JSONEncoder:  json.Marshal,
 		JSONDecoder:  json.Unmarshal,
 		Prefork:      true,
-		ServerHeader: "SPS Server by Rellic",
+		ServerHeader: "Proxy Server by rellic.app",
 	})
 
 	app.Use(compress.New(compress.Config{
