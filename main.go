@@ -17,7 +17,7 @@ func main() {
 	cfgFilename := flag.String("config", utils.GetEnvPath(), "Config file path.")
 
 	flag.Parse()
-	
+
 	cfg := *utils.EnvReader(*cfgFilename)
 
 	// initial database
@@ -26,7 +26,7 @@ func main() {
 	app := fiber.New(fiber.Config{
 		JSONEncoder:  json.Marshal,
 		JSONDecoder:  json.Unmarshal,
-		Prefork:      false,
+		Prefork:      true,
 		ServerHeader: "Proxy Server by rellic.app",
 	})
 
