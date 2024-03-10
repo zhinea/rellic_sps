@@ -12,13 +12,11 @@ import (
 )
 
 type Domain struct {
-	ContainerID string `json:"container_id"`
+	ContainerID int    `json:"container_id"`
 	Domain      string `json:"domain"`
-	EstRequests int    `json:"est_requests"`
 	GtagID      string `json:"gtag_id"`
-	ID          string `json:"id"`
+	ID          int    `json:"id"`
 	IsActive    int    `json:"is_active"`
-	ServerID    string `json:"server_id"`
 }
 
 func AppMiddleware(handler http.Handler) http.Handler {
@@ -57,7 +55,7 @@ func AppMiddleware(handler http.Handler) http.Handler {
 				Model(&Domain{}).
 				//Table("domains").
 				//Select("domain, container_id, server_id").
-				Select("domains.domain, domains.container_id, containers.id, containers.server_id, containers.is_active, containers.est_requests, JSON_UNQUOTE(JSON_EXTRACT(containers.config, '$.options.gtag_id')) as gtag_id").
+				Select("domains.domain, domains.container_id, containers.id, containers.is_active, JSON_UNQUOTE(JSON_EXTRACT(containers.config, '$.options.gtag_id')) as gtag_id").
 				Joins("JOIN containers ON domains.container_id = containers.id").
 				Where("domains.domain = ?", host).
 				First(&domain).

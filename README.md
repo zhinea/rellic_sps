@@ -75,3 +75,17 @@ requirepass password
 # check the status
 redis-cli ping
 ```
+
+
+## Status Code
+
+| Code | Description                       |
+|------|-----------------------------------|
+| N    | No error                          |
+| B1   | Invalid request body              |
+| S1   | Server can't create to database   |
+| SU1 | Server can't update to database   |
+| SC2 | Server can't delete cache in database |
+| SD1  | Server can't delete from database |
+| WH0  | Data not found in database        |
+| ECS21 | Error retriving data statistic container |

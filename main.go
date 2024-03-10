@@ -42,6 +42,10 @@ func main() {
 		Level: compress.LevelBestSpeed,
 	}))
 
+	sysRoute := app.Group("/c0n9wb-sys")
+
+	routes.SysRouteInit(sysRoute)
+
 	// initial middleware
 	app.Use(adaptor.HTTPMiddleware(handler.AppMiddleware))
 

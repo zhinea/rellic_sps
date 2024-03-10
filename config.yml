@@ -7,7 +7,7 @@ server:
 # Database Configuration
 database:
   mysql:
-    dsn: "root:admin@tcp(localhost:3306)/rellic_iofi?charset=utf8mb4&parseTime=True&loc=Local"
+    dsn: "root:admin@tcp(localhost:3306)/rellic_m_elysia?charset=utf8mb4&parseTime=True&loc=Local"
   redis:
     addr: "localhost:6379"
     password: ""
