@@ -1,32 +1,22 @@
 package main
 
 import (
+	"flag"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/zhinea/sps/database"
 	"github.com/zhinea/sps/handler"
-	"github.com/zhinea/sps/model/entity"
 	"github.com/zhinea/sps/routes"
 	"github.com/zhinea/sps/utils"
-	"gopkg.in/yaml.v2"
 	"log"
 )
 
 func main() {
+	cfgFilename := flag.String("config", utils.GetEnvPath(), "Config file path.")
 
-	f, err := utils.EnvReader()
-
-	defer f.Close()
-
-	var cfg entity.Config
-
-	decoder := yaml.NewDecoder(f)
-	err = decoder.Decode(&cfg)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	cfg := *utils.EnvReader(*cfgFilename)
 
 	// initial database
 	database.InitDatabase(&cfg)

@@ -89,3 +89,21 @@ redis-cli ping
 | SD1  | Server can't delete from database |
 | WH0  | Data not found in database        |
 | ECS21 | Error retriving data statistic container |
+
+## Running in systmed
+```bash
+sudo nano /etc/systemd/system/rellic.service
+
+Description=Proxy Server
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+ExecStart=/root/apps/sps
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl start rellic
+sudo systemctl enable rellic
+```
