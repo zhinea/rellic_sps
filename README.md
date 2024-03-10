@@ -100,9 +100,10 @@ After=network.target
 [Service]
 User=root
 Group=www-data
-ExecStart=/root/apps/sps
+ExecStart=/root/apps/sps/sps -config=/root/apps/sps/config.yml 
 [Install]
 WantedBy=multi-user.target
+
 
 sudo systemctl start rellic
 sudo systemctl enable rellic
