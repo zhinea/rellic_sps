@@ -3,13 +3,16 @@ package statscontroller
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/zhinea/sps/database"
+	"time"
 )
 
 func ContainerRequestLogs(c *fiber.Ctx) error {
 	var result []map[string]interface{}
 
+	pastTime := time.Now().Add(-5 * time.Minute)
+
 	err := database.DB.
-		Raw("SELECT created_at, COUNT(*) AS usage_count, container_id FROM request_logs WHERE created_at >= NOW() - INTERVAL 5 MINUTE GROUP BY container_id").
+		Raw("SELECT created_at, COUNT(*) AS usage_count, container_id FROM request_logs WHERE created_at >= ? GROUP BY container_id", pastTime).
 		Scan(&result).
 		Error
 

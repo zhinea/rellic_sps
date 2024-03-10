@@ -5,21 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8285051e-fe7b-4c31-9400-e0d4215c4b36" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/build.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/controllers/containercontroller/container.controller.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/controllers/domaincontroller/domain.controller.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/controllers/statscontroller/stats.controller.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/db_migration.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/migrate.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/routes/sys.route.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/config.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controllers/gtagcontroller/gtagcontroller.go" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/gtagcontroller/gtag.controller.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handler/middleware.handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/handler/middleware.handler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/build-errors.log" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/build-errors.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/main" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/main" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/statscontroller/stats.controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/statscontroller/stats.controller.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
