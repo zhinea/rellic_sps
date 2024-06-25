@@ -6,11 +6,10 @@ import (
 	"github.com/zhinea/sps/database"
 	"github.com/zhinea/sps/handler"
 	"github.com/zhinea/sps/utils"
-	"io"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -35,8 +34,8 @@ func GetScripts(c *fiber.Ctx) error {
 	config := ctx.Value("domain").(handler.Domain)
 	c.Set("Content-Type", "application/javascript")
 
-	gtagURL := "https://www.googletagmanager.com/gtag/js?id=" + config.GtagID
-	cacheKey := "gtag:" + strconv.Itoa(config.ID)
+	filePath, _ := os.Getwd()
+	filePath = filePath + "/storage/gtag.min.js"
 	ipAddr := c.IP()
 
 	// Menggunakan Go routines untuk menyimpan data request log ke database
@@ -56,48 +55,24 @@ func GetScripts(c *fiber.Ctx) error {
 		}
 	}()
 
-	cachedScripts, err := database.Redis.Get(ctx, cacheKey).Result()
+	file, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Println(err)
 
-	if err == nil && cachedScripts != "" {
-		return c.SendString(cachedScripts)
+		return err
 	}
 
-	resp, errClient := client.Get(gtagURL)
+	subDomain := "http://" + config.Domain + "/_gg"
 
-	if errClient != nil {
-		log.Fatal(errClient)
-		return c.SendString("console.log('Error loading gtag.js');")
-	}
+	re := regexp.MustCompile(`PROXY_DOMAIN`)
 
-	defer resp.Body.Close()
-
-	body, errRead := io.ReadAll(resp.Body)
-
-	if errRead != nil {
-		log.Fatal(errRead)
-		return c.SendString("console.log('Error loading gtag.js');")
-	}
-
-	subDomain := "http://" + config.Domain
-
-	re := regexp.MustCompile(`b=(\w+)\.sendBeacon&&(\w+)\.sendBeacon\(a\)`)
-
-	editedBody := strings.Replace(string(body), `https://"+a+".google-analytics.com/g/collect`, subDomain+"/proxy", -1)
-	editedBody = re.ReplaceAllString(editedBody, `let Ev=new URL(a),et=btoa(Ev.search);a=new URL("?p="+et+"&d="+Ev.searchParams.get("tid"),Ev.origin+Ev.pathname).href; b=false;`)
-
-	go func() {
-		defer utils.Recover()
-
-		if err := database.Redis.Set(ctx, cacheKey, editedBody, time.Hour*24*7).Err(); err != nil {
-			log.Println("err: can't cache gtag.js", err)
-		}
-	}()
+	editedBody := re.ReplaceAllString(string(file), subDomain)
 
 	return c.Send([]byte(editedBody))
 }
 
 func HandleTrackData(c *fiber.Ctx) error {
-	payload := c.Query("p")
+	payload := c.Query("cache")
 	config := c.Context().Value("domain").(handler.Domain)
 
 	if payload == "" {

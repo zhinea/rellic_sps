@@ -7,7 +7,7 @@ import (
 
 func RouteInit(app *fiber.App) {
 
-	app.Get("/", gtagcontroller.GetScripts)
+	app.Get("/gtag/js", gtagcontroller.GetScripts)
 	app.All("/:any", gtagcontroller.HandleTrackData)
 
 }
