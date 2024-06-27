@@ -124,4 +124,22 @@ Or it can be a genuine network issue. Restart your network-manager using sudo se
 ## Docker
 ```bash
 docker-compose up --build
+
+# Gunakan flag -d untuk agar tidak terjebak
+docker-compose up --build -d
+
+
+# Restart
+docker-compose restart container_name
+
+docker-compose stop goapp
+docker-compose start goapp
+
+# Rebuild & Restart the app
+docker-compose up --build goapp
+
+
+# See the logs
+docker-compose logs goapp
+
 ```

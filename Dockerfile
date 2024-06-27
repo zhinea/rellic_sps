@@ -15,7 +15,7 @@ RUN go mod download
 COPY . .
 
 # Kompilasi aplikasi Go
-RUN go build -o main .
+RUN go build -ldflags "-s -w" -o main .
 
 # Eksekusi aplikasi Go
 CMD ["./main"]
