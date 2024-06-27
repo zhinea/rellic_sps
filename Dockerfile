@@ -19,6 +19,9 @@ RUN go build -ldflags "-s -w" -o main .
 
 EXPOSE 3000
 
+RUN apk add dumb-init
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
 # Eksekusi aplikasi Go
 CMD ["./main"]
 #ENTRYPOINT ["./main"]
