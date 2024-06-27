@@ -55,6 +55,7 @@ func main() {
 
 	err = app.Listen(cfg.Server.Host + ":" + cfg.Server.Port)
 	if err != nil {
+		log.Fatalln(err)
 		return
 	}
 }
