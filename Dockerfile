@@ -1,5 +1,5 @@
 # Gunakan gambar dasar Golang
-FROM golang:1.22
+FROM golang:1.22-alpine
 
 # Setel variabel lingkungan untuk root direktori
 ENV APP_HOME /app
