@@ -18,4 +18,5 @@ COPY . .
 RUN go build -ldflags "-s -w" -o main .
 
 # Eksekusi aplikasi Go
-CMD ["./main"]
+#CMD ["./main"]
+ENTRYPOINT ["./main"]
