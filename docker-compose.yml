@@ -8,8 +8,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "@@KlowyFishCopycat"
       MYSQL_DATABASE: rellic_sps
-      MYSQL_USER: "suhu"
-      MYSQL_PASSWORD: "@@RemoteSuhu123Alam"
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "passWDExtraVaganza"
     ports:
       - "3306:3306"
     volumes:
