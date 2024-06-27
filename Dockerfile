@@ -17,6 +17,8 @@ COPY . .
 # Kompilasi aplikasi Go
 RUN go build -ldflags "-s -w" -o main .
 
+EXPOSE 3000
+
 # Eksekusi aplikasi Go
-#CMD ["./main"]
-ENTRYPOINT ["./main"]
+CMD ["./main"]
+#ENTRYPOINT ["./main"]
