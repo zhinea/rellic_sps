@@ -18,7 +18,10 @@ var (
 	client = &http.Client{
 		Timeout: 30 * time.Second,
 	}
-	analyticURL = "https://google-analytics.com/g/collect"
+	analyticURL    = "https://google-analytics.com/g/collect"
+	pathProject, _ = os.Getwd()
+	filePath       = pathProject + "/storage/gtag.min.js"
+	regexDomain    = regexp.MustCompile(`PROXY_DOMAIN`)
 )
 
 type RequestLog struct {
@@ -30,13 +33,23 @@ type RequestLog struct {
 }
 
 func GetScripts(c *fiber.Ctx) error {
-	ctx := c.Context()
-	config := ctx.Value("domain").(handler.Domain)
 	c.Set("Content-Type", "application/javascript")
 
-	filePath, _ := os.Getwd()
-	filePath = filePath + "/storage/gtag.min.js"
+	ctx := c.Context()
 	ipAddr := c.IP()
+
+	config := ctx.Value("domain").(handler.Domain)
+
+	file, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Println(err)
+
+		return err
+	}
+
+	subDomain := "http://" + config.Domain + "/_gg"
+
+	editedBody := regexDomain.ReplaceAllString(string(file), subDomain)
 
 	// Menggunakan Go routines untuk menyimpan data request log ke database
 	go func() {
@@ -54,19 +67,6 @@ func GetScripts(c *fiber.Ctx) error {
 			log.Println("err: can't insert request log to database", err)
 		}
 	}()
-
-	file, err := os.ReadFile(filePath)
-	if err != nil {
-		log.Println(err)
-
-		return err
-	}
-
-	subDomain := "http://" + config.Domain + "/_gg"
-
-	re := regexp.MustCompile(`PROXY_DOMAIN`)
-
-	editedBody := re.ReplaceAllString(string(file), subDomain)
 
 	return c.Send([]byte(editedBody))
 }

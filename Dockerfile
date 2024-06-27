@@ -1,0 +1,21 @@
+# Gunakan gambar dasar Golang
+FROM golang:1.22
+
+# Setel variabel lingkungan untuk root direktori
+ENV APP_HOME /app
+WORKDIR $APP_HOME
+
+# Salin go.mod dan go.sum ke direktori kerja
+COPY go.mod go.sum ./
+
+# Unduh dependencies Go
+RUN go mod download
+
+# Salin seluruh kode sumber ke dalam container
+COPY . .
+
+# Kompilasi aplikasi Go
+RUN go build -o main .
+
+# Eksekusi aplikasi Go
+CMD ["./main"]

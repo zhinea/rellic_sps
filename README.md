@@ -119,3 +119,9 @@ ping github.com, if ping failed. it is DNS error.
 sudo vim /etc/resolv.conf, the add: nameserver 8.8.8.8 nameserver 8.8.4.4
 Or it can be a genuine network issue. Restart your network-manager using sudo service network-manager restart or fix it up
 ```
+
+
+## Docker
+```bash
+docker-compose up --build
+```

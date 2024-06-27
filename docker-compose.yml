@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:latest
+    container_name: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "@@KlowyFishCopycat"
+      MYSQL_DATABASE: rellic_sps
+      MYSQL_USER: "suhu"
+      MYSQL_PASSWORD: "@@RemoteSuhu123Alam"
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+  sps:
+    build: .
+    container_name: sps
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: user
+      DB_PASSWORD: "passWDExtraVaganza"
+      DB_NAME: rellic_sps
