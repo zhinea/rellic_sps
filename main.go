@@ -53,7 +53,7 @@ func main() {
 	defer sqlDB.Close()
 	defer database.Redis.Close()
 
-	err = app.Listen(":" + cfg.Server.Port)
+	err = app.Listen(cfg.Server.Host + ":" + cfg.Server.Port)
 	if err != nil {
 		return
 	}
