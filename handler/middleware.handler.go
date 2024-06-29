@@ -35,6 +35,12 @@ func AppMiddleware(handler http.Handler) http.Handler {
 			return
 		}
 
+		if strings.Contains(r.URL.Path, "health") {
+			log.Println("Access route system detected")
+			handler.ServeHTTP(w, r)
+			return
+		}
+
 		//check host in exists in redis
 		//if strings.Contains(utils.Cfg.Server.Domain, host) {
 		//	log.Println("Master domain detected", utils.Cfg.Server.Domain, host)
