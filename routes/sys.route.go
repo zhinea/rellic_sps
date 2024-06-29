@@ -11,6 +11,12 @@ func SysRouteInit(router fiber.Router) {
 
 	v1 := router.Group("/v1")
 
+	v1.Get("/health", func(ctx *fiber.Ctx) error {
+		return ctx.JSON(fiber.Map{
+			"status": 1,
+		})
+	})
+
 	container := v1.Group("/containers")
 
 	container.Post("/", containercontroller.Create)

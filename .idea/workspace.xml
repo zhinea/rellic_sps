@@ -5,7 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8285051e-fe7b-4c31-9400-e0d4215c4b36" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/config.yml.example" beforeDir="false" afterPath="$PROJECT_DIR$/config.yml.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/sys.route.go" beforeDir="false" afterPath="$PROJECT_DIR$/routes/sys.route.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
