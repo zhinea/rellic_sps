@@ -1,8 +1,14 @@
 
 # Server Configuration
+container:
+  id: "01j1e00n3ksvn0txfrpz0t10jc"
+  server_url: "https://vpc-seller.erra.my.id"
+
 server:
   port: 3000
   host: "0.0.0.0"
+  domain: "id-east-1.de-rellic.cloud"
+  system_path: "c0n9wb-sys"
 
 # Database Configuration
 database:

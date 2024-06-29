@@ -8,6 +8,8 @@ import (
 	"path"
 )
 
+var Cfg entity.Config
+
 func EnvReader(configPath string) *entity.Config {
 
 	log.Println("Load config from =>", configPath)
@@ -19,15 +21,13 @@ func EnvReader(configPath string) *entity.Config {
 		log.Fatalln(err)
 	}
 
-	var cfg entity.Config
-
 	decoder := yaml.NewDecoder(f)
-	err = decoder.Decode(&cfg)
+	err = decoder.Decode(&Cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	return &cfg
+	return &Cfg
 }
 
 func GetEnvPath() string {

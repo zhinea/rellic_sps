@@ -8,6 +8,7 @@ import (
 	"github.com/zhinea/sps/utils"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -20,7 +21,6 @@ type Domain struct {
 }
 
 func AppMiddleware(handler http.Handler) http.Handler {
-	//MasterDomain := os.Getenv("MASTER_DOMAIN")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -29,9 +29,15 @@ func AppMiddleware(handler http.Handler) http.Handler {
 		ctx := context.Background()
 		host := r.Host
 
+		if strings.Contains(utils.Cfg.Server.SystemPath, r.URL.Path) {
+			log.Println("Access route system detected")
+			handler.ServeHTTP(w, r)
+			return
+		}
+
 		//check host in exists in redis
-		//if strings.Contains(MasterDomain, host) {
-		//	log.Println("Master domain detected", MasterDomain, host)
+		//if strings.Contains(utils.Cfg.Server.Domain, host) {
+		//	log.Println("Master domain detected", utils.Cfg.Server.Domain, host)
 		//	handler.ServeHTTP(w, r)
 		//	return
 		//}

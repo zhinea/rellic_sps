@@ -34,7 +34,7 @@ func main() {
 		Level: compress.LevelBestSpeed,
 	}))
 
-	sysRoute := app.Group("/c0n9wb-sys")
+	sysRoute := app.Group(cfg.Server.SystemPath)
 
 	routes.SysRouteInit(sysRoute)
 

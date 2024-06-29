@@ -1,9 +1,17 @@
 package entity
 
 type Config struct {
+	Container struct {
+		ID        string `yaml:"id"`
+		ServerUrl string `yaml:"server_url"`
+	} `yaml:"container"`
+
 	Server struct {
 		Host string `yaml:"host"`
 		Port string `yaml:"port"`
+
+		Domain     string `yaml:"domain"`
+		SystemPath string `yaml:"system_path"`
 	} `yaml:"server"`
 
 	Database struct {
