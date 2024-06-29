@@ -8,7 +8,7 @@ server:
   host: "0.0.0.0"
   domain: "id-east-1.de-rellic.cloud"
   system_path: "c0n9wb-sys"
-  
+
 # Database Configuration
 database:
   mysql:

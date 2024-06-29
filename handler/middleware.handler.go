@@ -29,7 +29,7 @@ func AppMiddleware(handler http.Handler) http.Handler {
 		ctx := context.Background()
 		host := r.Host
 
-		if strings.Contains(utils.Cfg.Server.SystemPath, r.URL.Path) {
+		if strings.Contains(r.URL.Path, utils.Cfg.Server.SystemPath) {
 			log.Println("Access route system detected")
 			handler.ServeHTTP(w, r)
 			return
