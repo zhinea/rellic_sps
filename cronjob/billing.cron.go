@@ -29,6 +29,11 @@ type RequestPayload struct {
 	Logs     []ContainerLogs
 }
 
+const (
+	maxRetries = 3
+	retryDelay = 5 * time.Second
+)
+
 func BillingSchedule() {
 	fiveMinutesAgo := time.Now().Add(-5 * time.Minute)
 
@@ -39,7 +44,7 @@ func BillingSchedule() {
 		Group("container_id").
 		Scan(&results)
 
-	var sumTotal int
+	var sumTotal = 0
 
 	for _, result := range results {
 		sumTotal += result.Total
@@ -52,13 +57,23 @@ func BillingSchedule() {
 		return
 	}
 
-	sendRequest(RequestPayload{
-		Checksum: utils.MD5Hash([]byte(strconv.Itoa(sumTotal) + ".PayloadRune:key")),
+	payload := RequestPayload{
+		Checksum: utils.MD5Hash([]byte(strconv.Itoa(sumTotal) + ".PayloadRune:KocakGeming")),
 		Logs:     results,
-	})
+	}
+
+	for i := 0; i < maxRetries; i++ {
+		if sendRequest(payload) == nil {
+			return
+		}
+		log.Printf("Retrying sendRequest (%d/%d)\n", i+1, maxRetries)
+		time.Sleep(retryDelay)
+	}
+
+	log.Println("Failed to send request after multiple attempts.")
 }
 
-func sendRequest(payload RequestPayload) {
+func sendRequest(payload RequestPayload) error {
 	log.Println(payload.Checksum)
 
 	url := utils.Cfg.Container.ServerUrl + "/api/v1/poolback-estung-tung/" + utils.Cfg.Container.ServerID + "/billings"
@@ -66,13 +81,13 @@ func sendRequest(payload RequestPayload) {
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
 		fmt.Println(err, "Error parsing JSON.Marshal")
-		return
+		return err
 	}
 
 	r, errR := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		fmt.Println(errR, "Error creating new http.NewRequest")
-		return
+		return err
 	}
 
 	r.Header.Add("Content-Type", "application/json")
@@ -80,7 +95,7 @@ func sendRequest(payload RequestPayload) {
 	res, err2 := httpClient.Do(r)
 	if err2 != nil {
 		fmt.Println(err2, "Error Sending Http Request")
-		return
+		return err
 	}
 
 	defer res.Body.Close()
@@ -92,14 +107,15 @@ func sendRequest(payload RequestPayload) {
 	derr := json.NewDecoder(res.Body).Decode(postResult)
 	if derr != nil {
 		fmt.Println(derr.Error(), "Error encode Result")
-		return
+		return err
 	}
 
 	if res.StatusCode != http.StatusCreated {
 		fmt.Println(strconv.Itoa(res.StatusCode) + " Res Billing poolback")
 		log.Println(derr.Error())
-		return
+		return err
 	}
 
 	log.Println("Billing poolback success")
+	return nil
 }

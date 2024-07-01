@@ -94,7 +94,7 @@ func GetScripts(c *fiber.Ctx) error {
 		return c.Send(editedBody)
 	}
 
-	file, err := os.ReadFile(gtagFilePath)
+	file, err := os.ReadFile(path)
 	if err != nil {
 		log.Println(err)
 
@@ -149,6 +149,7 @@ func HandleTrackData(c *fiber.Ctx) error {
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Println("err: can't send to google analytics", err)
+			return
 		}
 		defer resp.Body.Close()
 

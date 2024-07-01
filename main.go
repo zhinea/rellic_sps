@@ -81,7 +81,7 @@ func main() {
 
 		defer scheduler.Stop()
 
-		scheduler.AddFunc("*/1 * * * *", cronjob.BillingSchedule)
+		scheduler.AddFunc("*/5 * * * *", cronjob.BillingSchedule)
 
 		go scheduler.Start()
 	}
