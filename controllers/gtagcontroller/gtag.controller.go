@@ -2,6 +2,8 @@ package gtagcontroller
 
 import (
 	"encoding/base64"
+	"errors"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	utils2 "github.com/gofiber/fiber/v2/utils"
 	"github.com/zhinea/sps/database"
@@ -10,8 +12,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -21,8 +25,9 @@ var (
 	}
 	analyticURL    = "https://google-analytics.com/g/collect"
 	pathProject, _ = os.Getwd()
-	filePath       = pathProject + "/storage/gtag.min.js"
+	gtagFilePath   = pathProject + "/storage/gtag.min.js"
 	regexDomain    = regexp.MustCompile(`PROXY_DOMAIN`)
+	fileMutex      sync.Mutex // Mutex to handle file read/write race conditions
 )
 
 type RequestLog struct {
@@ -41,17 +46,6 @@ func GetScripts(c *fiber.Ctx) error {
 
 	config := ctx.Value("domain").(handler.Domain)
 
-	file, err := os.ReadFile(filePath)
-	if err != nil {
-		log.Println(err)
-
-		return err
-	}
-
-	subDomain := "http://" + config.Domain + "/_gg"
-
-	editedBody := regexDomain.ReplaceAllString(string(file), subDomain)
-
 	// Menggunakan Go routines untuk menyimpan data request log ke database
 	go func() {
 		defer utils.Recover()
@@ -69,7 +63,46 @@ func GetScripts(c *fiber.Ctx) error {
 		}
 	}()
 
-	return c.Send([]byte(editedBody))
+	scriptName := fmt.Sprintf("compiled-%s.js", utils.MD5Hash([]byte(config.Domain)))
+	path := filepath.Join(pathProject, "storage/compiled", scriptName)
+
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		fileMutex.Lock()
+		defer fileMutex.Unlock()
+		log.Println("Creating compiled file", scriptName)
+
+		file, err := os.ReadFile(gtagFilePath)
+		if err != nil {
+			log.Println(err)
+
+			return err
+		}
+
+		subDomain := "http://" + config.Domain + "/_gg"
+
+		editedBody := []byte(regexDomain.ReplaceAllString(string(file), subDomain))
+
+		go func() {
+			defer utils.Recover()
+
+			errWrite := os.WriteFile(path, editedBody, 0644)
+			if errWrite != nil {
+				log.Println("Error writing", errWrite.Error())
+			}
+		}()
+
+		return c.Send(editedBody)
+	}
+
+	file, err := os.ReadFile(gtagFilePath)
+	if err != nil {
+		log.Println(err)
+
+		return err
+	}
+	log.Println("Found compiled file", scriptName)
+
+	return c.Send(file)
 }
 
 func HandleTrackData(c *fiber.Ctx) error {

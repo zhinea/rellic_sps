@@ -2,8 +2,6 @@ package cronjob
 
 import (
 	"bytes"
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"github.com/goccy/go-json"
 	"github.com/zhinea/sps/controllers/gtagcontroller"
@@ -49,12 +47,13 @@ func BillingSchedule() {
 		fmt.Printf("ContainerID: %s, Total Logs: %d\n", result.ContainerID, result.Total)
 	}
 
-	checksumHash := md5.Sum([]byte(strconv.Itoa(sumTotal) + ".PayloadRune:key"))
-
-	checksum := hex.EncodeToString(checksumHash[:])
+	if results == nil {
+		log.Println("Not detected access. not send poolback.")
+		return
+	}
 
 	sendRequest(RequestPayload{
-		Checksum: checksum,
+		Checksum: utils.MD5Hash([]byte(strconv.Itoa(sumTotal) + ".PayloadRune:key")),
 		Logs:     results,
 	})
 }
@@ -66,13 +65,13 @@ func sendRequest(payload RequestPayload) {
 
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err, "Error parsing JSON.Marshal")
 		return
 	}
 
 	r, errR := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
-		fmt.Println(errR)
+		fmt.Println(errR, "Error creating new http.NewRequest")
 		return
 	}
 
@@ -80,7 +79,7 @@ func sendRequest(payload RequestPayload) {
 
 	res, err2 := httpClient.Do(r)
 	if err2 != nil {
-		fmt.Println(err2)
+		fmt.Println(err2, "Error Sending Http Request")
 		return
 	}
 
@@ -92,12 +91,13 @@ func sendRequest(payload RequestPayload) {
 
 	derr := json.NewDecoder(res.Body).Decode(postResult)
 	if derr != nil {
-		fmt.Println(derr)
+		fmt.Println(derr.Error(), "Error encode Result")
 		return
 	}
 
 	if res.StatusCode != http.StatusCreated {
 		fmt.Println(strconv.Itoa(res.StatusCode) + " Res Billing poolback")
+		log.Println(derr.Error())
 		return
 	}
 
