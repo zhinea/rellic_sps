@@ -2,7 +2,7 @@ package entity
 
 type Config struct {
 	Container struct {
-		ID        string `yaml:"id"`
+		ServerID  string `yaml:"server_id"`
 		ServerUrl string `yaml:"server_url"`
 	} `yaml:"container"`
 

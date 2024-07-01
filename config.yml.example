@@ -1,6 +1,6 @@
 # Server Configuration
 container:
-  id: "01j1e00n3ksvn0txfrpz0t10jc"
+  server_id: "01j1e00n3ksvn0txfrpz0t10jc"
   server_url: "https://vpc-seller.erra.my.id"
 
 server:

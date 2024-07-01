@@ -3,6 +3,7 @@ package gtagcontroller
 import (
 	"encoding/base64"
 	"github.com/gofiber/fiber/v2"
+	utils2 "github.com/gofiber/fiber/v2/utils"
 	"github.com/zhinea/sps/database"
 	"github.com/zhinea/sps/handler"
 	"github.com/zhinea/sps/utils"
@@ -72,7 +73,7 @@ func GetScripts(c *fiber.Ctx) error {
 }
 
 func HandleTrackData(c *fiber.Ctx) error {
-	payload := c.Query("cache")
+	payload := utils2.CopyString(c.Query("cache"))
 	config := c.Context().Value("domain").(handler.Domain)
 
 	if payload == "" {
