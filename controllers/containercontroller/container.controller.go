@@ -1,8 +1,10 @@
 package containercontroller
 
 import (
+	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/zhinea/sps/database"
+	"github.com/zhinea/sps/model/entity"
 	"log"
 )
 
@@ -75,6 +77,26 @@ func Update(c *fiber.Ctx) error {
 			"status_code": "SU1",
 			"message":     "Server can't save to database.",
 		})
+	}
+
+	var domainResults []entity.Domain
+
+	database.DB.Model(&entity.Domain{}).
+		Where("container_id = ?", container.ID).
+		Select("container_id, domain").
+		Scan(&domainResults)
+
+	domains := make([]string, len(domainResults))
+
+	for _, result := range domainResults {
+		domains = append(domains, "host:"+result.Domain)
+	}
+
+	ctx := context.Background()
+
+	errRedis := database.Redis.Del(ctx, domains...)
+	if errRedis != nil {
+		log.Println(errRedis)
 	}
 
 	return c.Status(200).JSON(fiber.Map{

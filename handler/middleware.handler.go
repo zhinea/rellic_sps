@@ -79,6 +79,12 @@ func AppMiddleware(handler http.Handler) http.Handler {
 				return
 			}
 
+			if domain.IsActive == 0 {
+				w.Header().Set("Content-Type", "application/javascript")
+				w.Write([]byte("setTimeout(()=>{console.log('The owner this domain has paused the container.');}, 100)"))
+				return
+			}
+
 			// Store data in cache
 			go func() {
 				defer utils.Recover()
