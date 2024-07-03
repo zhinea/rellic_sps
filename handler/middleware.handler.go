@@ -58,9 +58,7 @@ func AppMiddleware(handler http.Handler) http.Handler {
 			if err != nil {
 				fmt.Println("Error unmarshalling JSON:", err)
 			}
-
-			log.Println("Domain found in cache:", domain.Domain)
-
+			w.Header().Set("X-Rellic-Cached", "HIT")
 		} else {
 			// Retrieve data from the database if not found in cache
 			err := database.DB.
@@ -75,13 +73,17 @@ func AppMiddleware(handler http.Handler) http.Handler {
 
 			if err != nil {
 				w.Header().Set("Content-Type", "application/javascript")
-				w.Write([]byte("setTimeout(()=>{console.log('Domain or host not registered on rellic.app. Please insert your custom domain first, and make it to primary domain!');alert('rellic actication error');}, 500)"))
+				w.Header().Set("Cache-Control", "private")
+				w.Header().Set("X-Rellic-Message", "Domain or host not registered. ")
+				w.Write([]byte("setTimeout(()=>{console.log('[Rellic] Domain or host not registered on rellic.app. Please insert your custom domain first, and make it to primary domain!');alert('rellic activation error');}, 500)"))
 				return
 			}
 
 			if domain.IsActive == 0 {
 				w.Header().Set("Content-Type", "application/javascript")
-				w.Write([]byte("setTimeout(()=>{console.log('The owner this domain has paused the container.');}, 100)"))
+				w.Header().Set("Cache-Control", "private")
+				w.Header().Set("X-Rellic-Message", "Container Paused.")
+				w.Write([]byte("setTimeout(()=>{console.log('[Rellic] Container paused.');}, 100)"))
 				return
 			}
 
