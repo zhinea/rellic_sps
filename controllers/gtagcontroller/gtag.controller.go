@@ -23,11 +23,12 @@ var (
 	client = &http.Client{
 		Timeout: 30 * time.Second,
 	}
-	analyticURL    = "https://google-analytics.com/g/collect"
-	pathProject, _ = os.Getwd()
-	gtagFilePath   = pathProject + "/storage/gtag.min.js"
-	regexDomain    = regexp.MustCompile(`PROXY_DOMAIN`)
-	fileMutex      sync.Mutex // Mutex to handle file read/write race conditions
+	analyticURL     = "https://google-analytics.com/g/collect"
+	pathProject, _  = os.Getwd()
+	gtagFilePath    = pathProject + "/storage/gtag.min.js"
+	regexDomain     = regexp.MustCompile(`PROXY_DOMAIN`)
+	regexGTAGConfig = regexp.MustCompile(`G-7NJG7X7KP1`)
+	fileMutex       sync.Mutex // Mutex to handle file read/write race conditions
 )
 
 type RequestLog struct {
@@ -80,18 +81,19 @@ func GetScripts(c *fiber.Ctx) error {
 
 		subDomain := "http://" + config.Domain + "/_gg"
 
-		editedBody := []byte(regexDomain.ReplaceAllString(string(file), subDomain))
+		editedBody := regexDomain.ReplaceAllString(string(file), subDomain)
+		editedBody = regexGTAGConfig.ReplaceAllString(editedBody, subDomain)
 
 		go func() {
 			defer utils.Recover()
 
-			errWrite := os.WriteFile(path, editedBody, 0644)
+			errWrite := os.WriteFile(path, []byte(editedBody), 0644)
 			if errWrite != nil {
 				log.Println("Error writing", errWrite.Error())
 			}
 		}()
 
-		return c.Send(editedBody)
+		return c.Send([]byte(editedBody))
 	}
 
 	file, err := os.ReadFile(path)

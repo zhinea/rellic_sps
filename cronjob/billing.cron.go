@@ -2,6 +2,7 @@ package cronjob
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/goccy/go-json"
 	"github.com/zhinea/sps/controllers/gtagcontroller"
@@ -104,15 +105,15 @@ func sendRequest(payload RequestPayload) error {
 		status int
 	}{}
 
-	derr := json.NewDecoder(res.Body).Decode(postResult)
-	if derr != nil {
-		fmt.Println(derr.Error(), "Error encode Result")
+	if res.StatusCode != http.StatusCreated {
+		fmt.Println(strconv.Itoa(res.StatusCode) + " Res Billing poolback")
+		log.Println(res.Body)
 		return err
 	}
 
-	if res.StatusCode != http.StatusCreated {
-		fmt.Println(strconv.Itoa(res.StatusCode) + " Res Billing poolback")
-		log.Println(derr.Error())
+	derr := json.NewDecoder(res.Body).Decode(postResult)
+	if derr != nil {
+		fmt.Println(derr.Error(), "Error encode Result")
 		return err
 	}
 
