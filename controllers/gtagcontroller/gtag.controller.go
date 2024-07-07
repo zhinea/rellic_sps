@@ -82,7 +82,7 @@ func GetScripts(c *fiber.Ctx) error {
 		subDomain := "http://" + config.Domain + "/_gg"
 
 		editedBody := regexDomain.ReplaceAllString(string(file), subDomain)
-		editedBody = regexGTAGConfig.ReplaceAllString(editedBody, subDomain)
+		editedBody = regexGTAGConfig.ReplaceAllString(editedBody, config.GtagID)
 
 		go func() {
 			defer utils.Recover()
