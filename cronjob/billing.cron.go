@@ -2,7 +2,6 @@ package cronjob
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/goccy/go-json"
 	"github.com/zhinea/sps/controllers/gtagcontroller"

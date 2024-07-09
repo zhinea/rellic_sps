@@ -14,6 +14,9 @@ func RouteInit(app *fiber.App) {
 	})
 
 	app.Get("/gtag/js", gtagcontroller.GetScripts)
+
+	app.All("/:any/ga", gtagcontroller.HandleTrackData)
+
 	app.All("/:any", gtagcontroller.HandleTrackData)
 
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/zhinea/sps/database"
 	"github.com/zhinea/sps/utils"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -20,93 +19,133 @@ type Domain struct {
 	IsActive    int    `json:"is_active"`
 }
 
+var systemPaths = map[string]bool{
+	utils.Cfg.Server.SystemPath: true,
+	"health":                    true,
+}
+
 func AppMiddleware(handler http.Handler) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Cache-Control", "public, max-age=604800")
+		setHeaders(w)
 
-		ctx := context.Background()
 		host := r.Host
 
-		if strings.Contains(r.URL.Path, utils.Cfg.Server.SystemPath) {
-			log.Println("Access route system detected")
+		if isSystemPath(r.URL.Path) {
 			handler.ServeHTTP(w, r)
 			return
 		}
 
-		if strings.Contains(r.URL.Path, "health") {
-			log.Println("Access route system detected")
-			handler.ServeHTTP(w, r)
+		domain, err := getDomain(r.Context(), host)
+		if err != nil {
+			handleError(w, fmt.Sprintf("Error retrieving domain: %v", err))
 			return
 		}
 
-		//check host in exists in redis
-		//if strings.Contains(utils.Cfg.Server.Domain, host) {
-		//	log.Println("Master domain detected", utils.Cfg.Server.Domain, host)
-		//	handler.ServeHTTP(w, r)
-		//	return
-		//}
-
-		// Check if host exists in cache
-		res, _ := database.Redis.Get(ctx, "host:"+host).Result()
-
-		var domain Domain
-
-		if res != "" {
-			err := json.Unmarshal([]byte(res), &domain)
-			if err != nil {
-				fmt.Println("Error unmarshalling JSON:", err)
-			}
-			w.Header().Set("X-Rellic-Cached", "HIT")
-		} else {
-			// Retrieve data from the database if not found in cache
-			err := database.DB.
-				Model(&Domain{}).
-				//Table("domains").
-				//Select("domain, container_id, server_id").
-				Select("domains.domain, domains.container_id, containers.id, containers.is_active, JSON_UNQUOTE(JSON_EXTRACT(containers.config, '$.options.gtag_id')) as gtag_id").
-				Joins("JOIN containers ON domains.container_id = containers.id").
-				Where("domains.domain = ?", host).
-				First(&domain).
-				Error
-
-			if err != nil {
-				w.Header().Set("Content-Type", "application/javascript")
-				w.Header().Set("Cache-Control", "private")
-				w.Header().Set("X-Rellic-Message", "Domain or host not registered. ")
-				w.Write([]byte("setTimeout(()=>{console.log('[Rellic] Domain or host not registered on rellic.app. Please insert your custom domain first, and make it to primary domain!');alert('rellic activation error');}, 500)"))
-				return
-			}
-
-			if domain.IsActive == 0 {
-				w.Header().Set("Content-Type", "application/javascript")
-				w.Header().Set("Cache-Control", "private")
-				w.Header().Set("X-Rellic-Message", "Container Paused.")
-				w.Write([]byte("setTimeout(()=>{console.log('[Rellic] Container paused.');}, 100)"))
-				return
-			}
-
-			// Store data in cache
-			go func() {
-				defer utils.Recover()
-
-				domainJSON, err := json.Marshal(domain)
-				if err != nil {
-					fmt.Println("Error marshalling JSON:", err)
-				} else {
-					err := database.Redis.Set(ctx, "host:"+host, domainJSON, time.Minute*30).Err()
-					if err != nil {
-						fmt.Println("Error storing data in cache:", err)
-					}
-				}
-			}()
+		if domain == nil {
+			handleError(w, "Domain or host not registered.")
+			return
 		}
 
-		ctxs := context.WithValue(r.Context(), "domain", domain)
+		if domain.IsActive == 0 {
+			handleError(w, "Container Paused.")
+			return
+		}
 
-		log.Println("ACCEPTED Request from:", host, "~> [CID", domain.ContainerID, "] [", domain.GtagID, "]")
-
-		handler.ServeHTTP(w, r.WithContext(ctxs))
+		ctx := context.WithValue(r.Context(), "domain", *domain)
+		handler.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func setHeaders(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Cache-Control", "public, max-age=604800")
+}
+
+func isSystemPath(path string) bool {
+	for sysPath := range systemPaths {
+		if strings.Contains(sysPath, path) {
+			return true
+		}
+	}
+	return false
+}
+
+func getDomain(ctx context.Context, host string) (*Domain, error) {
+	domain, err := fetchDomainFromRedis(ctx, host)
+	if err != nil {
+		// If there's an error fetching from Redis, log it and continue to DB
+		fmt.Printf("Redis error: %v\n", err)
+	} else if domain != nil {
+		return domain, nil
+	}
+
+	// If domain is not in Redis or there was an error, fetch from DB
+	domain, err = fetchDomainFromDB(ctx, host)
+	if err != nil {
+		return nil, err
+	}
+
+	if domain != nil {
+		go cacheDomainInRedis(ctx, host, *domain)
+	}
+
+	return domain, nil
+}
+
+func fetchDomainFromRedis(ctx context.Context, host string) (*Domain, error) {
+	res, err := database.Redis.Get(ctx, "host:"+host).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	if res == "" {
+		return nil, nil
+	}
+
+	var domain Domain
+	err = json.Unmarshal([]byte(res), &domain)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain, nil
+}
+
+func fetchDomainFromDB(ctx context.Context, host string) (*Domain, error) {
+	var domain Domain
+	err := database.DB.
+		Model(&Domain{}).
+		Select("domains.domain, domains.container_id, containers.id, containers.is_active, JSON_UNQUOTE(JSON_EXTRACT(containers.config, '$.options.gtag_id')) as gtag_id").
+		Joins("JOIN containers ON domains.container_id = containers.id").
+		Where("domains.domain = ?", host).
+		First(&domain).
+		Error
+
+	if err != nil {
+		if err.Error() == "record not found" {
+			return nil, nil // Domain not found, but it's not an error
+		}
+		return nil, err
+	}
+
+	return &domain, nil
+}
+
+func cacheDomainInRedis(ctx context.Context, host string, domain Domain) {
+	domainJSON, err := json.Marshal(domain)
+	if err == nil {
+		err = database.Redis.Set(ctx, "host:"+host, domainJSON, time.Minute*30).Err()
+		if err != nil {
+			fmt.Printf("Error caching domain in Redis: %v\n", err)
+		}
+	} else {
+		fmt.Printf("Error marshalling domain: %v\n", err)
+	}
+}
+
+func handleError(w http.ResponseWriter, message string) {
+	w.Header().Set("Content-Type", "application/javascript")
+	w.Header().Set("Cache-Control", "private")
+	w.Header().Set("X-Rellic-Message", message)
+	w.Write([]byte(fmt.Sprintf("setTimeout(()=>{console.log('[Rellic] %s');}, 100)", message)))
 }
