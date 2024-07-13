@@ -6,6 +6,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/zhinea/sps/database"
 	"github.com/zhinea/sps/utils"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -19,14 +20,11 @@ type Domain struct {
 	IsActive    int    `json:"is_active"`
 }
 
-var systemPaths = map[string]bool{
-	utils.Cfg.Server.SystemPath: true,
-	"health":                    true,
-}
-
 func AppMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		setHeaders(w)
+
+		log.Println("Access from ", r.URL.Path)
 
 		host := r.Host
 
@@ -62,11 +60,14 @@ func setHeaders(w http.ResponseWriter) {
 }
 
 func isSystemPath(path string) bool {
-	for sysPath := range systemPaths {
-		if strings.Contains(sysPath, path) {
-			return true
-		}
+	if strings.Contains(path, utils.Cfg.Server.SystemPath) {
+		return true
 	}
+
+	if strings.Contains(path, "health") {
+		return true
+	}
+
 	return false
 }
 

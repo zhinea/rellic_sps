@@ -17,6 +17,6 @@ func RouteInit(app *fiber.App) {
 
 	app.All("/:any/ga", gtagcontroller.HandleTrackData)
 
-	app.All("/:any", gtagcontroller.HandleTrackData)
+	//app.All("/:any", gtagcontroller.HandleTrackData)
 
 }
