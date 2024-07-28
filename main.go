@@ -41,7 +41,7 @@ func initialize() {
 	// Retrieve sql.DB from GORM DB
 	sqlDB, initErr = database.DB.DB()
 	if initErr != nil {
-		log.Fatalln(initErr)
+		log.Println(initErr)
 	}
 }
 
@@ -88,7 +88,7 @@ func main() {
 
 	err := app.Listen(cfg.Server.Host + ":" + cfg.Server.Port)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		return
 	}
 

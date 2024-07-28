@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   db:
     image: mariadb:latest
@@ -17,6 +16,7 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    restart: always
   sps:
     build: .
     container_name: sps
@@ -30,3 +30,4 @@ services:
       DB_USER: user
       DB_PASSWORD: "passWDExtraVaganza"
       DB_NAME: rellic_sps
+    restart: unless-stopped
