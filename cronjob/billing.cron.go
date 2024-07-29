@@ -7,6 +7,7 @@ import (
 	"github.com/zhinea/sps/controllers/gtagcontroller"
 	"github.com/zhinea/sps/database"
 	"github.com/zhinea/sps/utils"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -106,7 +107,15 @@ func sendRequest(payload RequestPayload) error {
 
 	if res.StatusCode != http.StatusCreated {
 		fmt.Println(strconv.Itoa(res.StatusCode) + " Res Billing poolback")
-		log.Println(res.Body)
+
+		// read response body
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		log.Println(string(body))
+
 		return err
 	}
 
